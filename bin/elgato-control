@@ -24,7 +24,7 @@ KEY_ACTIONS = {
     "key_enter": "Return", "key_escape": "Escape", "key_space": "space", "key_tab": "Tab",
 }
 BUILTIN_ACTIONS = [
-    ("herdr", "Herdr in Foot"), ("mic_ready", "OmaVoice: Prepare Mic and Record"),
+    ("herdr", "Herdr in Foot"), ("orca", "Orca: Open or Focus"), ("mic_ready", "OmaVoice: Prepare Mic and Record"),
     ("workspace_cycle_prev", "Previous Existing Workspace"), ("workspace_cycle_next", "Next Existing Workspace"),
     ("workspace_new", "New Workspace"), ("brightness_down", "Deck Dimmer"),
     ("brightness_up", "Deck Brighter"), ("brightness_reset", "Deck Brightness 55%"),
@@ -379,6 +379,7 @@ def command_for(action, wave=None):
         return ["uwsm-app", "--", "gtk-launch", action[4:]]
     return {
       "herdr": ["uwsm-app", "--", "foot", "-e", "herdr"],
+      "orca": ["omarchy", "launch", "or", "focus", "orca", "uwsm-app -- /home/pi/Applications/orca-linux.AppImage"],
       "workspace_cycle_prev": ["hyprctl", "dispatch", 'hl.dsp.focus({ workspace = "e-1" })'],
       "workspace_cycle_next": ["hyprctl", "dispatch", 'hl.dsp.focus({ workspace = "e+1" })'],
       "workspace_new": ["hyprctl", "dispatch", 'hl.dsp.focus({ workspace = "empty" })'],

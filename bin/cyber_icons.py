@@ -19,6 +19,7 @@ SHAPES = {
  'screensaver': '<path d="M24 29h72v51H24zM60 81v11M43 93h34"/><path d="M64 37a17 17 0 1 0 15 27 21 21 0 0 1-15-27z" fill="{secondary}" stroke-width="2"/><path d="M40 39v8M36 43h8M82 47v6M79 50h6" stroke-width="2"/>',
  'lock': '<path d="M40 52V41a20 20 0 0 1 40 0v11"/><path d="M32 52h56v38H32z"/><circle cx="60" cy="68" r="5" fill="{secondary}"/><path d="M60 73v9"/>',
  'cliamp': '<path d="M50 80V34l38-9v46"/><circle cx="40" cy="80" r="10"/><circle cx="78" cy="71" r="10"/><path d="M50 46l38-9" stroke-width="2"/>',
+ 'orca': '<path d="M22 62c14-16 34-24 52-22 10 1 18 5 24 12-6 10-16 17-28 20-16 4-34 0-48-10z"/><path d="M74 40c2-8 8-14 16-16-2 8-2 15 2 21M40 72c-2 8-8 13-16 15 3-7 4-14 2-20" stroke-width="2"/><circle cx="42" cy="52" r="3" fill="{secondary}"/><path d="M52 78c10 6 24 6 34 0" stroke="{secondary}" stroke-width="2"/>',
  'govee_lamp': '<path d="M46 74c-12-9-15-24-8-36 5-9 13-13 22-13s17 4 22 13c7 12 4 27-8 36v8H46z"/><path d="M47 88h26M50 95h20M55 102h10"/><path d="M54 74V58M66 74V58M54 58c0-8 12-8 12 0" stroke="{secondary}" stroke-width="2"/><path d="M60 8v7M27 20l5 5M93 20l-5 5M16 45h7M97 45h7" stroke="{secondary}" stroke-width="2"/>',
 }
 DEFAULTS = {'background':'#08111f','cyan':'#38d9ef','magenta':'#ef61cb','yellow':'#f9d46c','foreground':'#e3f4ff'}
