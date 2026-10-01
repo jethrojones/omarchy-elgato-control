@@ -567,29 +567,21 @@ def mic_muted(target):
     except (OSError, subprocess.SubprocessError):
         return False
 
-def mute_svg(flash):
-    bg, fg = ("#e60012", "#ffffff") if flash else ("#4a0008", "#ff9aa5")
-    return f'''<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120">
-<rect width="120" height="120" fill="{bg}"/>
-<rect x="46" y="12" width="28" height="48" rx="14" fill="{fg}"/>
-<path d="M34 46a26 26 0 0 0 52 0M60 72v14M44 88h32" fill="none" stroke="{fg}" stroke-width="6" stroke-linecap="round"/>
-<path d="M24 14L96 86" stroke="{bg}" stroke-width="16" stroke-linecap="round"/>
-<path d="M24 14L96 86" stroke="{fg}" stroke-width="8" stroke-linecap="round"/>
-<text x="60" y="113" font-family="DejaVu Sans, Noto Sans, sans-serif" font-weight="bold" font-size="20" text-anchor="middle" fill="{fg}">MUTED</text>
-</svg>'''
-
 def mute_jpeg(flash, size, rotate):
+    """The stock mic key with a red flash and a slash through the mic."""
     converter = shutil.which("magick") or shutil.which("convert")
-    if not converter: return None
+    base = ICONS / "mic_mute.jpg"
+    if not converter or not base.is_file(): return None
     KEY_CACHE.mkdir(parents=True, exist_ok=True)
-    out = KEY_CACHE / ("muted-%d-%d-%d-v1.jpg" % (size, int(flash), int(rotate)))
+    out = KEY_CACHE / ("muted-%d-%d-%d-v3.jpg" % (size, int(flash), int(rotate)))
     if not out.is_file():
-        with tempfile.TemporaryDirectory(prefix="elgato-mute-") as directory:
-            svg = pathlib.Path(directory) / "mute.svg"; svg.write_text(mute_svg(flash))
-            command = [converter, "-background", "black", "-density", "288", str(svg), "-resize", "%dx%d!" % (size, size)]
-            if rotate: command += ["-rotate", "180"]
-            try: subprocess.run(command + ["-quality", "92", str(out)], check=True, timeout=8, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            except (OSError, subprocess.SubprocessError): return None
+        command = [converter, str(base)]
+        if flash: command += ["(", "-size", "120x120", "xc:#e60012", ")", "-compose", "Lighten", "-composite"]
+        command += ["-fill", "none", "-stroke", "#3a0008", "-strokewidth", "10", "-draw", "line 30,22 90,82",
+                    "-stroke", "white", "-strokewidth", "4", "-draw", "line 30,22 90,82", "-resize", "%dx%d!" % (size, size)]
+        if rotate: command += ["-rotate", "180"]
+        try: subprocess.run(command + ["-quality", "92", str(out)], check=True, timeout=8, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        except (OSError, subprocess.SubprocessError): return None
     return out.read_bytes()
 
 def dial_icon_svg(action, readout, x, color):
