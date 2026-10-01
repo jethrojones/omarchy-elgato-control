@@ -82,10 +82,10 @@ only when the mappings are no longer wanted.
 
 ## Camera-linked lights
 
-While any process has `/dev/video0` open, the daemon turns the Key Lights on;
-about three seconds after the camera is released it turns them off. It acts
-only on changes, so manual toggles are not overridden. Configure it in
-`~/.config/elgato-control/profile.json`:
+Off by default. When enabled, the daemon turns the Key Lights on while any
+process has `/dev/video0` open, and turns them off about three seconds after
+the camera is released. It acts only on changes, so manual toggles are not
+overridden. Enable it in `~/.config/elgato-control/profile.json`:
 
 ```json
 {"cameraSync": {"enabled": true, "device": "/dev/video0", "offDelay": 3}}

@@ -816,7 +816,7 @@ class Daemon:
     def sync_camera_lights(self):
         """Turn the Key Lights on while the camera is open and off shortly after it closes."""
         cfg = self.profile.get("cameraSync", {})
-        if not cfg.get("enabled", True): self.camera_state = None; return
+        if not cfg.get("enabled", False): self.camera_state = None; return
         active = camera_in_use(cfg.get("device", "/dev/video0"))
         now = time.monotonic()
         if active:
