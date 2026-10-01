@@ -80,6 +80,17 @@ only when the mappings are no longer wanted.
 | Dial 4 | Key Light temperature; press to toggle |
 | Pedals 1–3 | Mic mute, VOXtype push-to-talk, Screenshot |
 
+## Camera-linked lights
+
+While any process has `/dev/video0` open, the daemon turns the Key Lights on;
+about three seconds after the camera is released it turns them off. It acts
+only on changes, so manual toggles are not overridden. Configure it in
+`~/.config/elgato-control/profile.json`:
+
+```json
+{"cameraSync": {"enabled": true, "device": "/dev/video0", "offDelay": 3}}
+```
+
 ## Pedal remapping
 
 When a Pedal is detected, the panel shows one dropdown for each physical
