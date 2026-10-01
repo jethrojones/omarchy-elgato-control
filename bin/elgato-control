@@ -560,6 +560,38 @@ def audio_readout(target):
         pass
     return "Unavailable"
 
+def mic_muted(target):
+    try:
+        out = subprocess.run(["wpctl", "get-volume", target], capture_output=True, text=True, timeout=1).stdout
+        return "[MUTED]" in out
+    except (OSError, subprocess.SubprocessError):
+        return False
+
+def mute_svg(flash):
+    bg, fg = ("#e60012", "#ffffff") if flash else ("#4a0008", "#ff9aa5")
+    return f'''<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120">
+<rect width="120" height="120" fill="{bg}"/>
+<rect x="46" y="12" width="28" height="48" rx="14" fill="{fg}"/>
+<path d="M34 46a26 26 0 0 0 52 0M60 72v14M44 88h32" fill="none" stroke="{fg}" stroke-width="6" stroke-linecap="round"/>
+<path d="M24 14L96 86" stroke="{bg}" stroke-width="16" stroke-linecap="round"/>
+<path d="M24 14L96 86" stroke="{fg}" stroke-width="8" stroke-linecap="round"/>
+<text x="60" y="113" font-family="DejaVu Sans, Noto Sans, sans-serif" font-weight="bold" font-size="20" text-anchor="middle" fill="{fg}">MUTED</text>
+</svg>'''
+
+def mute_jpeg(flash, size, rotate):
+    converter = shutil.which("magick") or shutil.which("convert")
+    if not converter: return None
+    KEY_CACHE.mkdir(parents=True, exist_ok=True)
+    out = KEY_CACHE / ("muted-%d-%d-%d-v1.jpg" % (size, int(flash), int(rotate)))
+    if not out.is_file():
+        with tempfile.TemporaryDirectory(prefix="elgato-mute-") as directory:
+            svg = pathlib.Path(directory) / "mute.svg"; svg.write_text(mute_svg(flash))
+            command = [converter, "-background", "black", "-density", "288", str(svg), "-resize", "%dx%d!" % (size, size)]
+            if rotate: command += ["-rotate", "180"]
+            try: subprocess.run(command + ["-quality", "92", str(out)], check=True, timeout=8, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            except (OSError, subprocess.SubprocessError): return None
+    return out.read_bytes()
+
 def dial_icon_svg(action, readout, x, color):
     """Scale the symbol itself from 35% to full size using the live level."""
     match = re.search(r"(\d+)%", readout)
@@ -623,6 +655,8 @@ class Daemon:
         self.discovered_lights = []
         self.last_light_discovery = 0
         self.lcd_signature = None
+        self.mic_muted = False
+        self.mic_phase = None
         self.icon_theme = cyber_icons.theme_signature()
         self.running = True
         self.capture_process = None
@@ -663,10 +697,12 @@ class Daemon:
         self.write_key_jpeg(dev, index, output.read_bytes())
 
     def decorate_deck(self, dev):
+        self.mic_phase = -1
         self.hid.feature(dev, [0x03, 0x08, max(0, min(100, self.brightness))])
         for i, key in enumerate(self.profile.get("deckKeys", [])[:DECK_KEYS]): self.deck_key_image(dev, i, key)
 
     def decorate(self, dev):
+        self.mic_phase = -1
         self.hid.feature(dev, [0x03, 0x08, max(0, min(100, self.brightness))])
         for i, key in enumerate(self.profile.get("keys", [])[:8]):
             color = key.get("color", [40, 90, 130])
@@ -827,6 +863,29 @@ class Daemon:
         for d in self.devices.values():
             if d["productId"] == PLUS: self.update_lcd(d["handle"])
 
+    def mic_key_slots(self):
+        for d in self.devices.values():
+            if d["productId"] == PLUS:
+                for i, k in enumerate(self.profile.get("keys", [])[:8]):
+                    if k.get("action") == "mic_mute": yield d, i, k, False
+            elif d["productId"] == DECK:
+                for i, k in enumerate(self.profile.get("deckKeys", [])[:DECK_KEYS]):
+                    if k.get("action") == "mic_mute": yield d, i, k, True
+
+    def sync_mic_keys(self):
+        """Keep mic-mute keys in step with the real mute state; flash red while muted."""
+        wave = self.status.get("wave")
+        muted = mic_muted(str((wave or {}).get("sourceId", "@DEFAULT_AUDIO_SOURCE@")))
+        phase = int(time.monotonic() / 0.6) % 2 if muted else None
+        if muted == self.mic_muted and phase == self.mic_phase: return
+        self.mic_muted, self.mic_phase = muted, phase
+        for d, i, key, is_deck in self.mic_key_slots():
+            if muted:
+                data = mute_jpeg(phase == 0, 72 if is_deck else 120, is_deck)
+                if data: self.write_key_jpeg(d["handle"], i, data)
+            elif is_deck: self.deck_key_image(d["handle"], i, key)
+            else: self.key_image(d["handle"], i, key)
+
     def act_lights(self, action):
         if not self.light_states: self.refresh_lights()
         reachable = [x for x in self.light_states if x.get("reachable")]
@@ -885,7 +944,7 @@ class Daemon:
         self.previous["pedals"] = states
 
     def loop(self):
-        last_connect = last_status = last_lights = last_lcd = 0
+        last_connect = last_status = last_lights = last_lcd = last_mic = 0
         while self.running:
             now = time.monotonic()
             self.poll_capture()
@@ -900,6 +959,7 @@ class Daemon:
                                 self.key_image(device["handle"], index, key)
                         elif device["productId"] == DECK: self.decorate_deck(device["handle"])
             if now - last_lights > 5: self.refresh_lights(); last_lights = now
+            if now - last_mic > .3: self.sync_mic_keys(); last_mic = now
             try:
                 mtime = PROFILE.stat().st_mtime
                 if mtime != self.mtime:

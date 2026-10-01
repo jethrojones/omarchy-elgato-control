@@ -202,27 +202,6 @@ Panel {
             color: Qt.rgba(0, 0, 0, 0.28); border.color: Qt.rgba(1, 1, 1, 0.14)
 
             Column {
-              visible: root.selectedDevice === "streamdeck"; anchors.centerIn: parent; width: parent.width - Style.space(28); spacing: Style.space(10)
-              Text { anchors.horizontalCenter: parent.horizontalCenter; text: "STREAM DECK +"; color: Color.muted; font.family: Style.font.family; font.pixelSize: 10; font.bold: true }
-              Grid {
-                width: parent.width; columns: 4; columnSpacing: Style.space(8); rowSpacing: Style.space(8)
-                Repeater {
-                  model: root.profile.keys || []
-                  Rectangle {
-                    width: (parent.width - Style.space(24)) / 4; height: width; radius: 0
-                    color: root.selectedControl === "key" && root.selectedIndex === index ? root.controlFaceRaised : root.controlFace
-                    border.width: root.selectedControl === "key" && root.selectedIndex === index ? 2 : 1
-                    border.color: root.selectedControl === "key" && root.selectedIndex === index ? Color.accent : root.controlBorder
-                    Column { anchors.centerIn: parent; width: parent.width - Style.space(10); spacing: Style.space(3)
-                      Text { anchors.horizontalCenter: parent.horizontalCenter; text: index + 1; color: Color.muted; font.family: Style.font.family; font.pixelSize: 9 }
-                      Image { anchors.horizontalCenter: parent.horizontalCenter; width: Style.space(30); height: width; source: root.actionIcon(modelData.action); visible: source.toString() !== ""; fillMode: Image.PreserveAspectFit; smooth: true }
-                      Text { width: parent.width; horizontalAlignment: Text.AlignHCenter; elide: Text.ElideRight; text: root.actionName(modelData.action); textFormat: Text.PlainText; color: Color.foreground; font.family: Style.font.family; font.pixelSize: 9 }
-                    }
-                    MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: root.selectControl("key", index) }
-                  }
-                }
-              }
-            Column {
               visible: root.selectedDevice === "deck"; anchors.centerIn: parent; width: parent.width - Style.space(28); spacing: Style.space(10)
               Text { anchors.horizontalCenter: parent.horizontalCenter; text: "STREAM DECK"; color: Color.muted; font.family: Style.font.family; font.pixelSize: 10; font.bold: true }
               Grid {
@@ -245,6 +224,27 @@ Panel {
               }
             }
 
+            Column {
+              visible: root.selectedDevice === "streamdeck"; anchors.centerIn: parent; width: parent.width - Style.space(28); spacing: Style.space(10)
+              Text { anchors.horizontalCenter: parent.horizontalCenter; text: "STREAM DECK +"; color: Color.muted; font.family: Style.font.family; font.pixelSize: 10; font.bold: true }
+              Grid {
+                width: parent.width; columns: 4; columnSpacing: Style.space(8); rowSpacing: Style.space(8)
+                Repeater {
+                  model: root.profile.keys || []
+                  Rectangle {
+                    width: (parent.width - Style.space(24)) / 4; height: width; radius: 0
+                    color: root.selectedControl === "key" && root.selectedIndex === index ? root.controlFaceRaised : root.controlFace
+                    border.width: root.selectedControl === "key" && root.selectedIndex === index ? 2 : 1
+                    border.color: root.selectedControl === "key" && root.selectedIndex === index ? Color.accent : root.controlBorder
+                    Column { anchors.centerIn: parent; width: parent.width - Style.space(10); spacing: Style.space(3)
+                      Text { anchors.horizontalCenter: parent.horizontalCenter; text: index + 1; color: Color.muted; font.family: Style.font.family; font.pixelSize: 9 }
+                      Image { anchors.horizontalCenter: parent.horizontalCenter; width: Style.space(30); height: width; source: root.actionIcon(modelData.action); visible: source.toString() !== ""; fillMode: Image.PreserveAspectFit; smooth: true }
+                      Text { width: parent.width; horizontalAlignment: Text.AlignHCenter; elide: Text.ElideRight; text: root.actionName(modelData.action); textFormat: Text.PlainText; color: Color.foreground; font.family: Style.font.family; font.pixelSize: 9 }
+                    }
+                    MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: root.selectControl("key", index) }
+                  }
+                }
+              }
               Column {
                 width: parent.width; spacing: Style.space(2)
                 Rectangle {
