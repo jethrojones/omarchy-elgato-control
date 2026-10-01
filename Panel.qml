@@ -39,6 +39,14 @@ Panel {
     hasLights ? { value: "lights", label: "Key Lights" } : null
   ].filter(function(x) { return x !== null })
 
+  function ensureDevice() {
+    if (deviceOptions.length === 0 || deviceOptions.some(function(x) { return x.value === selectedDevice })) return
+    selectedDevice = deviceOptions[0].value; selectedIndex = 0; selectedLightIndex = -1
+    selectedControl = selectedDevice === "streamdeck" || selectedDevice === "deck" ? "key" : selectedDevice
+  }
+  onDeviceOptionsChanged: ensureDevice()
+  Component.onCompleted: ensureDevice()
+
   function selectControl(type, index) { selectedControl = type; selectedIndex = index }
   function actionName(value) {
     for (var i = 0; i < actionOptions.length; i++) if (actionOptions[i].value === value) return actionOptions[i].label.replace(/^(Function|Application|Key) · /, "")
